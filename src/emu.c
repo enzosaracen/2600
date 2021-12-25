@@ -1,88 +1,5 @@
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-typedef uint8_t	uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-
-uint16	pc, cc;
-uint8	rP, rX, rY, rA, rS;
-uint8	rom[4096];
-uint8	treg[64];
-char	hexs[5];
-
-SDL_Surface	*scr;
-
-enum {
-	CF = 1<<0,
-	ZF = 1<<1,
-	IF = 1<<2,
-	DF = 1<<3,
-	BF = 1<<4,
-	VF = 1<<6,
-	NF = 1<<7,
-};
-
-uint8	read(uint16);
-uint8	fetch8(void);
-uint16	fetch16(void);
-uint16	indf(uint8);
-
-char *hex(uint16 v)
-{
-	int i, t, n;
-
-	n = 2;
-	if(n & 0x8000)
-		n = 4;
-	for(i = 0; i < n; i++) {
-		t = v>>(n-1-i)*4 & 0xf;
-		if(t >= 10)
-			hexs[i] = 'A'+(t-10);
-		else
-			hexs[i] = '0'+t;
-	}
-	hexs[i] = 0;
-	return hexs;
-}
-
-void debug(void)
-{
-	int i;
-	char *s;
-
-	printf("PC=$%s\n", hex(pc));
-	printf("A=$%s\n", hex(rA));
-	printf(" X=$%s", hex(rX));
-	printf(" Y=$%s", hex(rY));
-	printf(" S=$%s\n", hex(rS));
-		
-	s = "NV1BDIZC";
-	for(i = 0; i < 8; i++) {
-		if(rP>>7-i & 1)
-			printf("%c", s[i]);
-		else
-			printf("-");
-	}
-	printf("\n\n");
-}
-
-void errorf(int dbg, char *fmt, ...)
-{
-	va_list arg;
-
-	fprintf(stderr, "error: ");
-	va_start(arg, fmt);
-	vfprintf(stderr, fmt, arg);
-	va_end(arg);
-	fprintf(stderr, "\n");
-	if(dbg)
-		debug();
-	SDL_Quit();
-	exit(1);
-}
+#define EXTERN
+#include "2600.h"
 
 #define imm()	fetch8()
 #define abs()	read(fetch16())
@@ -144,17 +61,17 @@ uint8 read(uint16 a)
 	return rom[a & 0xfff];
 }
 
+void tiawrite(uint8 v, uint8 a)
+{
+/*	switch(a) {
+	case WSYNC:;
+	}*/
+}
+
 void write(uint8 v, uint16 a)
 {
 	if(a < 0x7f)
 		tiawrite(v, a);
-}
-
-void tiawrite(uint8 v, uint8 a)
-{
-	switch(a) {
-	case WSYNC:
-	}
 }
 
 uint8 fetch8(void)
@@ -177,10 +94,10 @@ int main(int argc, char **argv)
 	FILE *f;
 
 	if(argc != 2)
-		return 1;
+		errorf(0, "need one rom file as argument");
 	f = fopen(argv[1], "r");
 	if(!f)
-		return 1;
+		errorf(0, "cannot open file: %s", argv[1]);
 	for(i = 0; i < 4096; i++) {
 		v0 = fgetc(f);
 		v1 = fgetc(f);
@@ -192,19 +109,19 @@ int main(int argc, char **argv)
 		if(((v0 < '0' || v0 > '9') && (v0 < 'A' || v0 > 'F')) || ((v1 < '0' || v1 > '9') && (v1 < 'A' || v1 > 'F')))
 			errorf(0, "bad rom");
 		if(v0 >= 'A' && v0 <= 'F')
-			rom[i] = v0-'A'+10 << 4;
+			rom[i] = (v0-'A'+10) << 4;
 		else
-			rom[i] = v0-'0' << 4;
+			rom[i] = (v0-'0') << 4;
 		if(v1 >= 'A' && v1 <= 'F')
 			rom[i] |= v1-'A'+10;
 		else
 			rom[i] |= v1-'0';
 	}
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
-		errorf("SDL_Init: %s", SDL_GetError());
-	scr = SDL_SetVideoMode(W, H, 32, 0);
+		errorf(0, "SDL_Init: %s", SDL_GetError());
+	scr = SDL_SetVideoMode(640, 480, 32, 0);
 	if(!scr)
-		errorf("SDL_SetVideoMode: %s", SDL_GetError());
+		errorf(0, "SDL_SetVideoMode: %s", SDL_GetError());
 	SDL_WM_SetCaption("2600", "");
 
 	rP |= (BF | 1<<5);
