@@ -10,7 +10,10 @@ typedef uint32_t uint32;
 uint16	pc, cc;
 uint8	rP, rX, rY, rA, rS;
 uint8	rom[4096];
+uint8	treg[64];
 char	hexs[5];
+
+SDL_Surface	*scr;
 
 enum {
 	CF = 1<<0,
@@ -77,6 +80,7 @@ void errorf(int dbg, char *fmt, ...)
 	fprintf(stderr, "\n");
 	if(dbg)
 		debug();
+	SDL_Quit();
 	exit(1);
 }
 
@@ -108,25 +112,6 @@ void nz(uint8 v)
 		rP |= NF;
 }
 
-uint8 read(uint16 a)
-{
-	return rom[a & 0xfff];
-}
-
-uint8 fetch8(void)
-{
-	return read(pc++);
-}
-
-uint16 fetch16(void)
-{
-	uint16 r;
-
-	r = read(pc++);
-	r |= read(pc++) << 8;
-	return r;
-}
-
 void step(void)
 {
 	uint8 op;
@@ -143,15 +128,47 @@ void step(void)
 	case 0xA1:	nz(rA = indx());	return;
 	case 0xB1:	nz(rA = indy());	return;
 		/* sta */
-	case 0x85:	rA = zp();		return;
-	case 0x95:	rA = zpx();		return;
-	case 0x8D:	rA = abs();		return;
-	case 0x9D:	rA = absx();		return;
-	case 0x99:	rA = absy();		return;
-	case 0x81:	rA = indx();		return;
-	case 0x91:	rA = indy();		return;
+	case 0x85:	write(rA, zp());	return;
+	case 0x95:	write(rA, zpx());	return;
+	case 0x8D:	write(rA, abs());	return;
+	case 0x9D:	write(rA, absx());	return;
+	case 0x99:	write(rA, absy());	return;
+	case 0x81:	write(rA, indx());	return;
+	case 0x91:	write(rA, indy());	return;
 	default:	errorf(0, "unimplemented op: %s", hex(op));
 	}
+}
+
+uint8 read(uint16 a)
+{
+	return rom[a & 0xfff];
+}
+
+void write(uint8 v, uint16 a)
+{
+	if(a < 0x7f)
+		tiawrite(v, a);
+}
+
+void tiawrite(uint8 v, uint8 a)
+{
+	switch(a) {
+	case WSYNC:
+	}
+}
+
+uint8 fetch8(void)
+{
+	return read(pc++);
+}
+
+uint16 fetch16(void)
+{
+	uint16 r;
+
+	r = read(pc++);
+	r |= read(pc++) << 8;
+	return r;
 }
 
 int main(int argc, char **argv)
@@ -183,6 +200,13 @@ int main(int argc, char **argv)
 		else
 			rom[i] |= v1-'0';
 	}
+	if(SDL_Init(SDL_INIT_VIDEO) < 0)
+		errorf("SDL_Init: %s", SDL_GetError());
+	scr = SDL_SetVideoMode(W, H, 32, 0);
+	if(!scr)
+		errorf("SDL_SetVideoMode: %s", SDL_GetError());
+	SDL_WM_SetCaption("2600", "");
+
 	rP |= (BF | 1<<5);
 	pc = 0x1000;
 	debug();
