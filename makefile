@@ -1,6 +1,7 @@
 CC	= gcc
 CFLAGS	= -Wall -Wextra -ggdb3 $(shell sdl-config --cflags --libs)
-OBJ	= src/emu.o \
+OBJ	= src/cpu.o \
+	  src/cmd.o \
 	  src/util.o
 
 HFILES	= src/2600.h

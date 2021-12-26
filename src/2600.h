@@ -30,7 +30,7 @@ void	debug(void);
 void	errorf(int, char *, ...);
 
 /*
- *	emu.c	
+ *	cpu.c	
  */
 uint16	indf(uint8);
 void	nz(uint8);
@@ -38,13 +38,13 @@ void	step(void);
 uint8	read(uint16);
 void	write(uint8, uint16);
 void	tiawrite(uint8, uint8);
-uint8	fetch8(void);
 uint16	fetch16(void);
+#define fetch8()	read(pc++)
 
-EXTERN uint16	pc, cc;
-EXTERN uint8	rP, rX, rY, rA, rS;
-EXTERN uint8	rom[4096];
-EXTERN uint8	tiareg[64];
-EXTERN char	hexs[5];
+EXTERN	uint16	pc, cc;
+EXTERN	uint8	rP, rX, rY, rA, rS;
+EXTERN	uint8	rom[4096];
+EXTERN	uint8	tiareg[64];
+EXTERN	char	hexs[5];
 
-EXTERN SDL_Surface	*scr;
+EXTERN	SDL_Surface	*scr;

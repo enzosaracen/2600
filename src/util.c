@@ -5,7 +5,7 @@ char *hex(uint16 v)
 	int i, t, n;
 
 	n = 2;
-	if(n & 0x8000)
+	if((v & 0xff00) != 0)
 		n = 4;
 	for(i = 0; i < n; i++) {
 		t = v>>(n-1-i)*4 & 0xf;
