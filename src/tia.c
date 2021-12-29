@@ -8,9 +8,8 @@ void draw(int x, int y, uint32 col)
 	y *= SF;
 	for(oy = 0; oy < SF; oy++)
 		for(ox = 0; ox < SF; ox++)
-			for(i = 0; i < SF; i++)
-				for(i = 0; i < 4; i++)
-					rast[(y+oy)*W*4 + (x+ox)*4 + i] = col>>i*8 & 0xff;
+			for(i = 0; i < 4; i++)
+				rast[(y+oy)*W*4 + (x+ox)*4 + i] = col>>i*8 & 0xff;
 }
 
 void tiawrite(uint16 a, uint8 v)
