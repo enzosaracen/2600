@@ -28,7 +28,7 @@ void debug(void)
 	printf(" X=$%s", hex(rX));
 	printf(" Y=$%s", hex(rY));
 	printf(" S=$%s\n", hex(rS));
-	printf("COLUBK=$%s\n", hex(tiareg[COLUBK]));
+	printf("COLUBK=$%d\n", colubk);
 	printf("px=%d py=%d\n", px, py);
 		
 	s = "NV1BDIZC";

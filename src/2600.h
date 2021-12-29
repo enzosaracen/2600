@@ -105,6 +105,8 @@ EXTERN	uint8	rom[4096], ram[128];
 EXTERN	uint8	tiareg[64];
 EXTERN	uint16	px, py;
 EXTERN	char	hexs[5];
+EXTERN	uint32	colubk, colup0, colup1, colupf, colubk;
+extern	uint32	coltab[8][16];
 
 EXTERN	uint8		rast[W*H*4];
 EXTERN	SDL_Surface	*scr;
