@@ -32,17 +32,17 @@ int main(int argc, char **argv)
 	}
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
 		errorf(0, "SDL_Init: %s", SDL_GetError());
-	scr = SDL_SetVideoMode(640, 480, 32, 0);
+	scr = SDL_SetVideoMode(W, H, 32, 0);
 	if(!scr)
 		errorf(0, "SDL_SetVideoMode: %s", SDL_GetError());
 	SDL_WM_SetCaption("2600", "");
 
 	rP |= (BF | 1<<5);
 	pc = 0x1000;
-	//debug();
-	for(i = 0; i < 5; i++) {
-		printf("%s\n", hex(fetch16()));
-		//step();
-		//debug();
+	debug();
+	for(i = 0; i < 4096; i++) {
+		step();
+		debug();
 	}
+	SDL_Delay(2000);
 }

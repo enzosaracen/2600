@@ -24,10 +24,12 @@ void debug(void)
 	char *s;
 
 	printf("PC=$%s\n", hex(pc));
-	printf("A=$%s\n", hex(rA));
+	printf("A=$%s", hex(rA));
 	printf(" X=$%s", hex(rX));
 	printf(" Y=$%s", hex(rY));
 	printf(" S=$%s\n", hex(rS));
+	printf("COLUBK=$%s\n", hex(tiareg[COLUBK]));
+	printf("px=%d py=%d\n", px, py);
 		
 	s = "NV1BDIZC";
 	for(i = 0; i < 8; i++) {
@@ -50,6 +52,7 @@ void errorf(int dbg, char *fmt, ...)
 	fprintf(stderr, "\n");
 	if(dbg)
 		debug();
+	SDL_Delay(2000);
 	SDL_Quit();
 	exit(1);
 }
