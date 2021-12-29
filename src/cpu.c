@@ -73,23 +73,35 @@ void step(void)
 	
 	op = fetch8();
 	switch(op) {
+		/* inx */
+	case 0xe8:	c(2); nz(++rX);				return;
 		/* lda */
-	case 0xA9:	c(2); nz(rA = imm());			return;
-	case 0xA5:	c(3); nz(rA = read(zp()));		return;
-	case 0xB5:	c(4); nz(rA = read(zpx()));		return;
-	case 0xAD:	c(4); nz(rA = read(abs()));		return;
-	case 0xBD:	c(4); nz(rA = read(absx()));		return;
-	case 0xB9:	c(4); nz(rA = read(absy()));		return;
-	case 0xA1:	c(6); nz(rA = read(indx()));		return;
-	case 0xB1:	c(5); nz(rA = read(indy()));		return;
+	case 0xa9:	c(2); nz(rA = imm());			return;
+	case 0xa5:	c(3); nz(rA = read(zp()));		return;
+	case 0xb5:	c(4); nz(rA = read(zpx()));		return;
+	case 0xad:	c(4); nz(rA = read(abs()));		return;
+	case 0xbd:	c(4); nz(rA = read(absx()));		return;
+	case 0xb9:	c(4); nz(rA = read(absy()));		return;
+	case 0xa1:	c(6); nz(rA = read(indx()));		return;
+	case 0xb1:	c(5); nz(rA = read(indy()));		return;
+		/* ldx */
+	case 0xa2:	c(2); nz(rX = imm());			return;
+	case 0xa6:	c(3); nz(rX = read(zp()));		return;
+	case 0xb6:	c(4); nz(rX = read(zpy()));		return;
+	case 0xae:	c(4); nz(rX = read(abs()));		return;
+	case 0xbe:	c(4); nz(rX = read(absy()));		return;
 		/* sta */
 	case 0x85:	c(3); write(zp(), rA);			return;
 	case 0x95:	c(4); write(zpx(), rA);			return;
-	case 0x8D:	c(4); write(abs(), rA);			return;
-	case 0x9D:	c(5); write(absx(), rA);		return;
+	case 0x8d:	c(4); write(abs(), rA);			return;
+	case 0x9d:	c(5); write(absx(), rA);		return;
 	case 0x99:	c(5); write(absy(), rA);		return;
 	case 0x81:	c(6); write(indx(), rA);		return;
 	case 0x91:	c(6); write(indy(), rA);		return;
+		/* stx */
+	case 0x86:	c(3); write(zp(), rX);			return;
+	case 0x96:	c(4); write(zpy(), rX);			return;
+	case 0x8e:	c(4); write(abs(), rX);			return;
 	default:	errorf(0, "bad op: %s", hex(op));
 	}
 }
