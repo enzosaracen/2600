@@ -11,7 +11,7 @@ uint32 coltab[8][16] = {
 	{0xececec, 0xfcfc68, 0xecc878, 0xfcbc94, 0xfcb4b4, 0xecb0e0, 0xd4b0fc, 0xbcb4fc, 0xa4b8fc, 0xa4c8fc, 0xa4e0fc, 0xa4fcd4, 0xb8fcb8, 0xc8fca4, 0xe0ec9c, 0xfce08c},
 };
 
-void draw(int x, int y, uint32 col)
+void pixel(int x, int y, uint32 col)
 {
 	int oy, ox, i;
 
@@ -23,17 +23,60 @@ void draw(int x, int y, uint32 col)
 				rast[(y+oy)*W*4 + (x+ox)*4 + i] = col>>i*8 & 0xff;
 }
 
+void draw(void)
+{
+	if(SDL_LockSurface(scr) < 0)
+		errorf(0, "SDL_LockSurface: %s", SDL_GetError());
+	memcpy((uint8*)scr->pixels, rast, W*H*4);
+	SDL_UnlockSurface(scr);
+	SDL_UpdateRect(scr, 0, 0, 0, 0);
+}
+
+void playfield(void)
+{
+	int x;
+
+	x = px/4;
+	if(x >= 20) {
+		if(tiareg[CTRLPF])
+			x = 39-x;
+		else
+			return;
+	}
+	if(x < 4) {
+		if(!(tiareg[PF0] & 0x10<<x))
+			return;
+	} else if(x < 12) {
+		if(!(tiareg[PF1] & 0x80>>(x-4)))
+			return;
+	} else if(x < 20) {
+		if(!(tiareg[PF2] & 1<<(x-12)))
+			return;
+	}
+	pixel(px, py, tiareg[COLUPF]);
+}
+
 void tiawrite(uint16 a, uint8 v)
 {
 	switch(a) {
+	case VSYNC:
+		if(v)
+			draw();
+		return;
 	case WSYNC:
 		tia(228-px);
 		return;
 	case COLUP0:
+		colup0 = coltab[v&0x7][(v&0x78)>>3];
+		return;
 	case COLUP1:
+		colup1 = coltab[v&0x7][(v&0x78)>>3];
+		return;
 	case COLUPF:
+		colupf = coltab[v&0x7][(v&0x78)>>3];
+		return;
 	case COLUBK:
-		colubk = coltab[v&0x7][(v&0xf8)>>3];
+		colubk = coltab[v&0x7][(v&0x78)>>3];
 		return;
 	}
 	tiareg[a] = v;
@@ -45,7 +88,7 @@ void tia(uint8 n)
 
 	for(i = 0; i < n; i++) {
 		if(py >= 40 && py < 232 && px >= 68 && px < 228)
-			draw(px-68, py-40, colubk);
+			pixel(px-68, py-40, colubk);
 		px++;
 		if(px >= 228) {
 			px = 0;
@@ -54,9 +97,4 @@ void tia(uint8 n)
 				py = 0;
 		}
 	}
-	if(SDL_LockSurface(scr) < 0)
-		errorf(0, "SDL_LockSurface: %s", SDL_GetError());
-	memcpy((uint8*)scr->pixels, rast, W*H*4);
-	SDL_UnlockSurface(scr);
-	SDL_UpdateRect(scr, 0, 0, 0, 0);
 }

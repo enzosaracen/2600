@@ -85,7 +85,9 @@ void	errorf(int, char *, ...);
  *	cpu.c	
  */
 uint16	indf(uint8);
-void	nz(uint8);
+uint8	nz(uint8);
+void	dec(uint16);
+void	inc(uint16);
 void	step(void);
 uint8	read(uint16);
 void	write(uint16, uint8);
@@ -95,7 +97,8 @@ uint16	fetch16(void);
 /*
  *	tia.c
  */
-void	draw(int, int, uint32);
+void	pixel(int, int, uint32);
+void	draw(void);
 void	tiawrite(uint16, uint8);
 void	tia(uint8);
 

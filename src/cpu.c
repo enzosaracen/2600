@@ -28,13 +28,14 @@ uint16 indf(uint8 o)
 	return read(a) | read((a+1) & 0xff)<<8;
 }
 
-void nz(uint8 v)
+uint8 nz(uint8 v)
 {
 	rP &= ~(NF | ZF);
 	if(v == 0)
 		rP |= ZF;
 	else if(v & 0x80)
 		rP |= NF;
+	return v;
 }
 
 uint8 read(uint16 a)
@@ -65,6 +66,22 @@ void write(uint16 a, uint8 v)
 		errorf(1, "write defaulted, v: %d\ta: %d", v, a);
 }
 
+void dec(uint16 a)
+{
+	uint8 v;
+	
+	v = read(a);
+	write(a, nz(v-1));
+}
+
+void inc(uint16 a)
+{
+	uint8 v;
+
+	v = read(a);
+	write(a, nz(v+1));
+}
+
 void step(void)
 {
 	uint8 op;
@@ -73,8 +90,33 @@ void step(void)
 	
 	op = fetch8();
 	switch(op) {
+		/* dec */
+	case 0xc6:	c(5); dec(zp());			return;
+	case 0xd6:	c(6); dec(zpx());			return;
+	case 0xce:	c(6); dec(abs());			return;
+	case 0xde:	c(7); dec(absx());			return;
+		/* dex */
+	case 0xca:	c(2); nz(--rX);				return;
+		/* dey */
+	case 0x88:	c(2); nz(--rY);				return;
+		/* eor */
+	case 0x49:	c(2); nz(rA ^= imm());			return;
+	case 0x45:	c(3); nz(rA ^= read(zp()));		return;
+	case 0x55:	c(4); nz(rA ^= read(zpx()));		return;
+	case 0x4d:	c(4); nz(rA ^= read(abs()));		return;
+	case 0x5d:	c(4); nz(rA ^= read(absx()));		return;
+	case 0x59:	c(4); nz(rA ^= read(absy()));		return;
+	case 0x41:	c(6); nz(rA ^= read(indx()));		return;
+	case 0x51:	c(5); nz(rA ^= read(indy()));		return;
+		/* inc */
+	case 0xe6:	c(5); inc(zp());			return;
+	case 0xf6:	c(6); inc(zpx());			return;
+	case 0xee:	c(6); inc(abs());			return;
+	case 0xfe:	c(7); inc(absx());			return;
 		/* inx */
 	case 0xe8:	c(2); nz(++rX);				return;
+		/* iny */
+	case 0xc8:	c(2); nz(++rY);				return;
 		/* lda */
 	case 0xa9:	c(2); nz(rA = imm());			return;
 	case 0xa5:	c(3); nz(rA = read(zp()));		return;
@@ -90,6 +132,7 @@ void step(void)
 	case 0xb6:	c(4); nz(rX = read(zpy()));		return;
 	case 0xae:	c(4); nz(rX = read(abs()));		return;
 	case 0xbe:	c(4); nz(rX = read(absy()));		return;
+		/* ldy */
 		/* sta */
 	case 0x85:	c(3); write(zp(), rA);			return;
 	case 0x95:	c(4); write(zpx(), rA);			return;
@@ -102,6 +145,7 @@ void step(void)
 	case 0x86:	c(3); write(zp(), rX);			return;
 	case 0x96:	c(4); write(zpy(), rX);			return;
 	case 0x8e:	c(4); write(abs(), rX);			return;
+		/* sty */
 	default:	errorf(0, "bad op: %s", hex(op));
 	}
 }
