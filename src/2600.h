@@ -95,6 +95,7 @@ void	inc(uint16);
 uint8	lsr(uint8);
 uint8	bcd(uint8);
 void	adc(uint8);
+void	sbc(uint8);
 void	bit(uint8);
 void	cmp(uint8, uint8);
 uint8	rol(uint8);
