@@ -41,11 +41,9 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("2600", "");
 
 	rP |= (BF | 1<<5);
-	pc = 0x1000;
-	debug();
-	for(i = 0; i < 4096; i++) {
+	pc = read(0xfffc) | read(0xfffd) << 8;
+	for(i = 0; i < 1000000; i++) {
 		step();
-		debug();
 	}
 	SDL_Delay(2000);
 }

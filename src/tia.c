@@ -15,6 +15,8 @@ void pixel(int x, int y, uint32 col)
 {
 	int oy, ox, i;
 
+	x -= 68;
+	y -= 40;
 	x *= SF;
 	y *= SF;
 	for(oy = 0; oy < SF; oy++)
@@ -36,9 +38,9 @@ void playfield(void)
 {
 	int x;
 
-	x = px/4;
+	x = (px-68)/4;
 	if(x >= 20) {
-		if(tiareg[CTRLPF])
+		if(1)
 			x = 39-x;
 		else
 			return;
@@ -53,7 +55,7 @@ void playfield(void)
 		if(!(tiareg[PF2] & 1<<(x-12)))
 			return;
 	}
-	pixel(px, py, tiareg[COLUPF]);
+	pixel(px, py, colupf);
 }
 
 void tiawrite(uint16 a, uint8 v)
@@ -82,13 +84,22 @@ void tiawrite(uint16 a, uint8 v)
 	tiareg[a] = v;
 }
 
+uint8 tiaread(uint16 a)
+{
+	switch(a) {
+	case INPT1:;
+	}
+}
+
 void tia(uint8 n)
 {
 	int i;
 
 	for(i = 0; i < n; i++) {
-		if(py >= 40 && py < 232 && px >= 68 && px < 228)
-			pixel(px-68, py-40, colubk);
+		if(py >= 40 && py < 232 && px >= 68 && px < 228) {
+			pixel(px, py, colubk);
+			playfield();
+		}
 		px++;
 		if(px >= 228) {
 			px = 0;

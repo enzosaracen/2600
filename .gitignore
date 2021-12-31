@@ -7,3 +7,4 @@ conv
 conv.c
 out.conv
 dasm
+demos/

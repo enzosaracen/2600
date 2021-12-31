@@ -74,10 +74,28 @@ enum {
 	CXCLR
 };
 
+enum {
+	CXM0P,
+	CXM1P,
+	CXP0FB,
+	CXP1FB,
+	CXM0FB,
+	CXM1FB,
+	CXBLPF,
+	CXPPMM,
+	INPT0,
+	INPT1,
+	INPT2,
+	INPT3,
+	INPT4,
+	INPT5,
+};
+
 /*
  *	util.c
  */
 char	*hex(uint16);
+char	*op2str(uint8);
 void	debug(void);
 void	errorf(int, char *, ...);
 
@@ -113,6 +131,7 @@ uint16	fetch16(void);
 void	pixel(int, int, uint32);
 void	draw(void);
 void	tiawrite(uint16, uint8);
+uint8	tiaread(uint16);
 void	tia(uint8);
 
 EXTERN	uint16	pc;

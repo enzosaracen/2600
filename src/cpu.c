@@ -42,23 +42,26 @@ uint8 read(uint16 a)
 {
 	if(a & 0x1000)
 		return rom[a & 0xfff];
-	else if(a <= 0x7f);
-		//return tiaread(a);
+	else if(a <= 0x7f)
+		return tiaread(a);
 	else if(a <= 0x1ff)
 		return ram[a & 0x7f];
+	else return;
 	errorf(1, "read defaulted, a: %d", a);
 }
 
 void write(uint16 a, uint8 v)
 {
 	if(a <= 0x7f)
-		tiawrite(a, v);
+		tiawrite(a & 0x3f, v);
 	else if (a <= 0x1ff)
 		ram[a & 0x7f] = v;
 	else if(a & 0x1000)
 		errorf(0, "write to rom, a: %d", a);
-	else
+	else {
+		return;
 		errorf(1, "write defaulted, v: %d\ta: %d", v, a);
+	}
 }
 
 void push8(uint8 v)
@@ -254,6 +257,8 @@ void step(void)
 	#define c(n) tia((n)*3)
 	
 	op = fetch8();
+	printf("%s: %s\t|", hex(pc), op2str(op));
+	printf(" %s\n", hex(op));
 	switch(op) {
 /* adc */
 	case 0x69:	c(2); adc(imm());			return;
@@ -502,6 +507,6 @@ void step(void)
 	case 0x9a:	c(2); nz(rS = rX);			return;
 /* tya */
 	case 0x98:	c(2); nz(rA = rY);			return;
-	default:	errorf(0, "bad op: %s", hex(op));
+	default:	c(2); 					return;
 	}
 }
