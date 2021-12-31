@@ -99,7 +99,7 @@ void	bit(uint8);
 void	cmp(uint8, uint8);
 uint8	rol(uint8);
 uint8	ror(uint8);
-void	interrupt(void);
+void	brk(void);
 void	step(void);
 uint8	read(uint16);
 void	write(uint16, uint8);

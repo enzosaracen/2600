@@ -154,6 +154,31 @@ void adc(uint8 v)
 	rA = t;
 }
 
+void sbc(uint8 v)
+{
+	int t;
+	uint8 c;
+
+	c = !(rP & CF);
+	rP &= !(NF | VF | ZF | CF);
+	if(rP & DF) {
+		t = bcd(rA) - bcd(v) - c;
+		if(t > 99 || t < 0)
+			rP |= VF;
+	} else {
+		t = rA - v - c;
+		if(t > 127 || t < -128)
+			rP |= VF;
+	}
+	if(t >= 0)
+		rP |= CF;
+	if(t & 0x80)
+		rP |= NF;
+	if(t == 0)
+		rP |= ZF;
+	rA = t;
+}
+
 void bit(uint8 v)
 {
 	v &= rA;
@@ -211,7 +236,7 @@ uint8 ror(uint8 v)
 	return v;
 }
 
-void interrupt(void)
+void brk(void)
 {
 	push16(++pc);
 	push8(rP | 0x20);
@@ -292,7 +317,7 @@ void step(void)
 				pc += tc;
 								return;
 /* brk */
-	case 0x00:	c(7); interrupt();			return;
+	case 0x00:	c(7); brk();				return;
 /* bvc */
 	case 0x50:	c(2); tc = fetch8();
 			if((rP & VF) == 0)
@@ -430,6 +455,25 @@ void step(void)
 			write(ta, ror(read(ta)));		return;
 	case 0x7e:	c(7); ta = absx();
 			write(ta, ror(read(ta)));		return;
+/* rti */
+	case 0x40:	c(6); rP = pop8(); pc = pop16();	return;
+/* rts */
+	case 0x60:	c(6); pc = pop16()+1;			return;
+/* sbc */
+	case 0xe9:	c(2); sbc(imm());			return;
+	case 0xe5:	c(3); sbc(read(zp()));			return;
+	case 0xf5:	c(4); sbc(read(zpx()));			return;
+	case 0xed:	c(4); sbc(read(abs()));			return;
+	case 0xfd:	c(4); sbc(read(absx()));		return;
+	case 0xf9:	c(4); sbc(read(absy()));		return;
+	case 0xe1:	c(6); sbc(read(indx()));		return;
+	case 0xf1:	c(5); sbc(read(indy()));		return;
+/* sec */
+	case 0x38:	c(2); rP |= CF;				return;
+/* sed */
+	case 0xf8:	c(2); rP |= DF;				return;
+/* sei */
+	case 0x78:	c(2); rP |= IF;				return;
 /* sta */
 	case 0x85:	c(3); write(zp(), rA);			return;
 	case 0x95:	c(4); write(zpx(), rA);			return;
@@ -443,6 +487,21 @@ void step(void)
 	case 0x96:	c(4); write(zpy(), rX);			return;
 	case 0x8e:	c(4); write(abs(), rX);			return;
 /* sty */
+	case 0x84:	c(3); write(zp(), rY);			return;
+	case 0x94:	c(4); write(zpy(), rY);			return;
+	case 0x8c:	c(4); write(abs(), rY);			return;
+/* tax */
+	case 0xaa:	c(2); nz(rX = rA);			return;
+/* tay */
+	case 0xa8:	c(2); nz(rY = rA);			return;
+/* tsx */
+	case 0xba:	c(2); nz(rX = rS);			return;
+/* txa */
+	case 0x8a:	c(2); nz(rA = rX);			return;
+/* txs */
+	case 0x9a:	c(2); nz(rS = rX);			return;
+/* tya */
+	case 0x98:	c(2); nz(rA = rY);			return;
 	default:	errorf(0, "bad op: %s", hex(op));
 	}
 }
