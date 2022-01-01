@@ -8,9 +8,10 @@
 #define EXTERN	extern
 #endif
 
-#define SF	3
-#define W	160*SF
-#define H	192*SF
+#define SFH	4
+#define SFW	6
+#define W	160*SFW
+#define H	192*SFH
 
 typedef uint8_t uint8;
 typedef uint16_t uint16;
@@ -75,7 +76,7 @@ enum {
 };
 
 enum {
-	CXM0P,
+	CXM0P	= 0x30,
 	CXM1P,
 	CXP0FB,
 	CXP1FB,
@@ -89,6 +90,14 @@ enum {
 	INPT3,
 	INPT4,
 	INPT5,
+};
+
+enum {
+	INTIM	= 0x0284,
+	TIM1T	= 0x0294,
+	TIM8T,
+	TIM64T,
+	T1024T,
 };
 
 /*
@@ -119,6 +128,7 @@ void	cmp(uint8, uint8);
 uint8	rol(uint8);
 uint8	ror(uint8);
 void	brk(void);
+void	timerstep(int);
 void	step(void);
 uint8	read(uint16);
 void	write(uint16, uint8);
@@ -141,6 +151,8 @@ EXTERN	uint8	tiareg[64];
 EXTERN	uint16	px, py;
 EXTERN	char	hexs[5];
 EXTERN	uint32	colubk, colup0, colup1, colupf, colubk;
+EXTERN	uint8	time;
+EXTERN	int	interval, cyc;
 extern	uint32	coltab[8][16];
 
 EXTERN	uint8		rast[W*H*4];

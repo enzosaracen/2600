@@ -38,32 +38,6 @@ uint8 nz(uint8 v)
 	return v;
 }
 
-uint8 read(uint16 a)
-{
-	if(a & 0x1000)
-		return rom[a & 0xfff];
-	else if(a <= 0x7f)
-		return tiaread(a);
-	else if(a <= 0x1ff)
-		return ram[a & 0x7f];
-	else return;
-	errorf(1, "read defaulted, a: %d", a);
-}
-
-void write(uint16 a, uint8 v)
-{
-	if(a <= 0x7f)
-		tiawrite(a & 0x3f, v);
-	else if (a <= 0x1ff)
-		ram[a & 0x7f] = v;
-	else if(a & 0x1000)
-		errorf(0, "write to rom, a: %d", a);
-	else {
-		return;
-		errorf(1, "write defaulted, v: %d\ta: %d", v, a);
-	}
-}
-
 void push8(uint8 v)
 {
 	write(0x100 | rS--, v);
@@ -248,16 +222,78 @@ void brk(void)
 	rP |= IF;
 }
 
+void prs(void)
+{
+	int i, j;
+
+	for(i = 0; i < 8; i++) {
+		for(j = 0; j < 16; j++)
+			printf("%s ", hex(ram[i*16 + j]));
+		printf("\n");
+	}
+	printf("\n\n");
+}
+
+uint8 read(uint16 a)
+{
+	if(a <= 0x7f)
+		return tiaread(a & 0xf);
+	else if(a <= 0x1ff)
+		return ram[a & 0x7f];
+	else if(a & 0x200 && a <= 0x2ff) {
+		switch(a) {
+		case INTIM:	return time;
+		default:	errorf(1, "riot read defaulted");
+		}
+	} else if(a & 0x1000)
+		return rom[a & 0xfff];
+	errorf(1, "read defaulted, a: %d", a);
+}
+
+void write(uint16 a, uint8 v)
+{
+	if(a <= 0x7f)
+		tiawrite(a & 0x3f, v);
+	else if(a <= 0x1ff)
+		ram[a & 0x7f] = v;
+	else if(a & 0x200 && a <= 0x2ff) {
+		switch(a) {
+		case TIM1T:	time = v; interval = 1; break;
+		case TIM8T:	time = v; interval = 8; break;
+		case TIM64T:	time = v; interval = 64; break;
+		case T1024T:	time = v; interval = 1024; break;
+		default:	errorf(1, "riot write defaulted");
+		}
+	} else
+		errorf(1, "write defaulted, v: %d\ta: %d", v, a);
+}
+
+void timerstep(int n)
+{
+	if(!interval)
+		return;
+	cyc += n;
+	while(cyc >= interval) {
+		cyc -= interval;
+		if(--time <= 0) {
+			cyc = 0;
+			interval = 1;
+			time = 0xff;
+			break;
+		}
+	}
+}
+
 void step(void)
 {
 	char tc;
 	uint16 ta;
 	uint8 op;
 
-	#define c(n) tia((n)*3)
+	#define c(n) tia((n)*3); timerstep(n)
 	
 	op = fetch8();
-	printf("%s: %s\t|", hex(pc), op2str(op));
+	printf("%s: %s\t|", hex(pc-1), op2str(op));
 	printf(" %s\n", hex(op));
 	switch(op) {
 /* adc */
@@ -389,7 +425,7 @@ void step(void)
 	case 0x4c:	c(3); pc = abs();			return;
 	case 0x6c:	c(5); pc = ind();			return;
 /* jsr */
-	case 0x20:	c(6); push16(pc-1); pc = abs();		return;
+	case 0x20:	c(6); push16(pc+1); pc = abs();		return;
 /* lda */
 	case 0xa9:	c(2); nz(rA = imm());			return;
 	case 0xa5:	c(3); nz(rA = read(zp()));		return;
@@ -507,6 +543,6 @@ void step(void)
 	case 0x9a:	c(2); nz(rS = rX);			return;
 /* tya */
 	case 0x98:	c(2); nz(rA = rY);			return;
-	default:	c(2); 					return;
+	default:	c(3);					return;
 	}
 }

@@ -1,5 +1,7 @@
 #include "2600.h"
 
+uint8 enablv;
+
 uint32 coltab[8][16] = {
 	{0x000000, 0x444400, 0x702800, 0x841800, 0x880000, 0x78005c, 0x480078, 0xdddddd, 0x000088, 0x00187c, 0x002c5c, 0x003c2c, 0x003c00, 0x143800, 0x2c3000, 0x442800},
 	{0x404040, 0x646410, 0x844414, 0x983418, 0x9c2020, 0x8c2074, 0x602090, 0x302098, 0x1c209c, 0x1c3890, 0x1c4c78, 0x1c5c48, 0x205c20, 0x345c1c, 0x4c501c, 0x644818},
@@ -17,10 +19,10 @@ void pixel(int x, int y, uint32 col)
 
 	x -= 68;
 	y -= 40;
-	x *= SF;
-	y *= SF;
-	for(oy = 0; oy < SF; oy++)
-		for(ox = 0; ox < SF; ox++)
+	x *= SFW;
+	y *= SFH;
+	for(oy = 0; oy < SFH; oy++)
+		for(ox = 0; ox < SFW; ox++)
 			for(i = 0; i < 4; i++)
 				rast[(y+oy)*W*4 + (x+ox)*4 + i] = col>>i*8 & 0xff;
 }
@@ -40,7 +42,7 @@ void playfield(void)
 
 	x = (px-68)/4;
 	if(x >= 20) {
-		if(1)
+		if(!(tiareg[CTRLPF] & 1))
 			x = 39-x;
 		else
 			return;
@@ -58,6 +60,28 @@ void playfield(void)
 	pixel(px, py, colupf);
 }
 
+void missile(uint8 t)
+{
+	if(tiareg[RESMP0+t] & 2) {
+		tiareg[RESM0+t] = t ? tiareg[PF1] : tiareg[PF0];
+		return;
+	}
+	if(tiareg[ENAM0+t] && px >= tiareg[RESM0+t])
+		if((px-tiareg[RESM0+t]) <= ((tiareg[NUSIZ0+t] & 0x30) >> 3))
+			pixel(px, py, t ? colup1 : colup0);
+}
+
+void ball(void)
+{
+	if(tiareg[ENABL] && px >= tiareg[RESBL])
+		if((px-tiareg[RESBL]) <= ((tiareg[CTRLPF] & 0x30) >> 3))
+			pixel(px, py, colupf);
+}
+
+void player(uint8 t)
+{
+}
+
 void tiawrite(uint16 a, uint8 v)
 {
 	switch(a) {
@@ -69,17 +93,30 @@ void tiawrite(uint16 a, uint8 v)
 		tia(228-px);
 		return;
 	case COLUP0:
-		colup0 = coltab[v&0x7][(v&0x78)>>3];
+		colup0 = coltab[(v & 0xe)>>1][(v & 0xf0)>>4];
 		return;
 	case COLUP1:
-		colup1 = coltab[v&0x7][(v&0x78)>>3];
+		colup1 = coltab[(v & 0xe)>>1][(v & 0xf0)>>4];
 		return;
 	case COLUPF:
-		colupf = coltab[v&0x7][(v&0x78)>>3];
+		colupf = coltab[(v & 0xe)>>1][(v & 0xf0)>>4];
 		return;
 	case COLUBK:
-		colubk = coltab[v&0x7][(v&0x78)>>3];
+		colubk = coltab[(v & 0xe)>>1][(v & 0xf0)>>4];
 		return;
+	case RESP0:
+	case RESP1:
+	case RESM0:
+	case RESM1:
+	case RESBL:
+		tiareg[a] = px;
+		return;
+	case ENABL:
+		if(tiareg[VDELBL] & 1) {
+			enablv = v;
+			return;
+		}
+		break;
 	}
 	tiareg[a] = v;
 }
@@ -99,11 +136,18 @@ void tia(uint8 n)
 		if(py >= 40 && py < 232 && px >= 68 && px < 228) {
 			pixel(px, py, colubk);
 			playfield();
+			missile(0);
+			missile(1);
+			ball();
+			//player(0);
+			//player(1);
 		}
 		px++;
 		if(px >= 228) {
 			px = 0;
 			py++;
+			if(tiareg[VDELBL] & 1)
+				tiareg[ENABL] = enablv;
 			if(py >= 262)
 				py = 0;
 		}
