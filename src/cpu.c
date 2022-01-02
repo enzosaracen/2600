@@ -232,7 +232,7 @@ uint8 read(uint16 a)
 		return ram[a & 0x7f];
 	else if(a & 0x200 && a <= 0x2ff) {
 		switch(a) {
-		case INTIM:	return time;
+			case INTIM:	return time;
 		case INSTAT:	t = timerflags; timerflags &= 0xdf; return t;
 		case SWCHA:	return (swcha & swacnt) | (portA & (swacnt^0xff));
 		case SWCHB:	return (swchb & swbcnt) | (portB & (swbcnt^0xff));
@@ -267,6 +267,10 @@ void write(uint16 a, uint8 v)
 
 void timerstep(int n)
 {
+	if(tcarry-3 >= 0) {
+		tcarry -= 3;
+		n++;
+	}
 	if(!interval)
 		return;
 	cyc += n;

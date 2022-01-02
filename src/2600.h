@@ -76,7 +76,7 @@ enum {
 };
 
 enum {
-	CXM0P	= 0x30,
+	CXM0P,
 	CXM1P,
 	CXP0FB,
 	CXP1FB,
@@ -154,12 +154,11 @@ EXTERN	uint8	rP, rX, rY, rA, rS;
 EXTERN	uint8	rom[4096], ram[128];
 EXTERN	uint8	tiareg[64];
 EXTERN	uint16	px, py;
-EXTERN	uint16	coll;
 EXTERN	char	hexs[5];
 EXTERN	uint32	colubk, colup0, colup1, colupf, colubk;
 EXTERN	uint8	swcha, swacnt, swchb, swbcnt, portA, portB;
 EXTERN	uint8	timerflags;
-EXTERN	int	interval, cyc, time;
+EXTERN	int	interval, cyc, time, tcarry;
 extern	uint32	coltab[8][16];
 
 EXTERN	uint8		rast[W*H*4];
