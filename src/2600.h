@@ -8,10 +8,10 @@
 #define EXTERN	extern
 #endif
 
-#define SFH	4
-#define SFW	6
+#define SFH	3
+#define SFW	5
 #define W	160*SFW
-#define H	192*SFH
+#define H	222*SFH
 
 typedef uint8_t uint8;
 typedef uint16_t uint16;
@@ -93,7 +93,12 @@ enum {
 };
 
 enum {
-	INTIM	= 0x0284,
+	SWCHA	= 0x0280,
+	SWACNT,
+	SWCHB,
+	SWBCNT,
+	INTIM,
+	INSTAT,
 	TIM1T	= 0x0294,
 	TIM8T,
 	TIM64T,
@@ -149,10 +154,12 @@ EXTERN	uint8	rP, rX, rY, rA, rS;
 EXTERN	uint8	rom[4096], ram[128];
 EXTERN	uint8	tiareg[64];
 EXTERN	uint16	px, py;
+EXTERN	uint16	coll;
 EXTERN	char	hexs[5];
 EXTERN	uint32	colubk, colup0, colup1, colupf, colubk;
-EXTERN	uint8	time;
-EXTERN	int	interval, cyc;
+EXTERN	uint8	swcha, swacnt, swchb, swbcnt, portA, portB;
+EXTERN	uint8	timerflags;
+EXTERN	int	interval, cyc, time;
 extern	uint32	coltab[8][16];
 
 EXTERN	uint8		rast[W*H*4];

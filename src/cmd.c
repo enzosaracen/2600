@@ -33,6 +33,7 @@ int main(int argc, char **argv)
 			break;
 		rom[i] = v;
 	}
+	pc = read(0xfffc) | read(0xfffd) << 8;
 	if(SDL_Init(SDL_INIT_VIDEO) < 0)
 		errorf(0, "SDL_Init: %s", SDL_GetError());
 	scr = SDL_SetVideoMode(W, H, 32, 0);
@@ -41,7 +42,6 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("2600", "");
 
 	rP |= (BF | 1<<5);
-	pc = read(0xfffc) | read(0xfffd) << 8;
 	for(i = 0; i < 1000000; i++) {
 		step();
 	}

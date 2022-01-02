@@ -222,20 +222,10 @@ void brk(void)
 	rP |= IF;
 }
 
-void prs(void)
-{
-	int i, j;
-
-	for(i = 0; i < 8; i++) {
-		for(j = 0; j < 16; j++)
-			printf("%s ", hex(ram[i*16 + j]));
-		printf("\n");
-	}
-	printf("\n\n");
-}
-
 uint8 read(uint16 a)
 {
+	uint8 t;
+
 	if(a <= 0x7f)
 		return tiaread(a & 0xf);
 	else if(a <= 0x1ff)
@@ -243,6 +233,9 @@ uint8 read(uint16 a)
 	else if(a & 0x200 && a <= 0x2ff) {
 		switch(a) {
 		case INTIM:	return time;
+		case INSTAT:	t = timerflags; timerflags &= 0xdf; return t;
+		case SWCHA:	return (swcha & swacnt) | (portA & (swacnt^0xff));
+		case SWCHB:	return (swchb & swbcnt) | (portB & (swbcnt^0xff));
 		default:	errorf(1, "riot read defaulted");
 		}
 	} else if(a & 0x1000)
@@ -258,11 +251,15 @@ void write(uint16 a, uint8 v)
 		ram[a & 0x7f] = v;
 	else if(a & 0x200 && a <= 0x2ff) {
 		switch(a) {
-		case TIM1T:	time = v; interval = 1; break;
-		case TIM8T:	time = v; interval = 8; break;
-		case TIM64T:	time = v; interval = 64; break;
-		case T1024T:	time = v; interval = 1024; break;
-		default:	errorf(1, "riot write defaulted");
+		case TIM1T:	timerflags = 0; time = v; interval = 1; timerstep(interval); break;
+		case TIM8T:	timerflags = 0; time = v; interval = 8; timerstep(interval); break;
+		case TIM64T:	timerflags = 0; time = v; interval = 64; timerstep(interval); break;
+		case T1024T:	timerflags = 0; time = v; interval = 1024; timerstep(interval); break;
+		case SWCHA:	swcha = v; break;
+		case SWACNT:	swacnt = v; break;
+		case SWCHB:	swchb = v; break;
+		case SWBCNT:	swbcnt = v; break;
+		default:	return;errorf(1, "riot write defaulted");
 		}
 	} else
 		errorf(1, "write defaulted, v: %d\ta: %d", v, a);
@@ -275,8 +272,9 @@ void timerstep(int n)
 	cyc += n;
 	while(cyc >= interval) {
 		cyc -= interval;
-		if(--time <= 0) {
+		if(--time < 0) {
 			cyc = 0;
+			timerflags = 0xc0;
 			interval = 1;
 			time = 0xff;
 			break;
@@ -293,8 +291,8 @@ void step(void)
 	#define c(n) tia((n)*3); timerstep(n)
 	
 	op = fetch8();
-	printf("%s: %s\t|", hex(pc-1), op2str(op));
-	printf(" %s\n", hex(op));
+	//printf("%s: %s\t|", hex(pc-1), op2str(op));
+	//printf(" %s\n", hex(op));
 	switch(op) {
 /* adc */
 	case 0x69:	c(2); adc(imm());			return;
@@ -540,9 +538,10 @@ void step(void)
 /* txa */
 	case 0x8a:	c(2); nz(rA = rX);			return;
 /* txs */
-	case 0x9a:	c(2); nz(rS = rX);			return;
+	case 0x9a:	c(2); rS = rX;				return;
 /* tya */
 	case 0x98:	c(2); nz(rA = rY);			return;
+	case 0x04:	c(3); fetch8();				return;
 	default:	c(3);					return;
 	}
 }

@@ -1,6 +1,6 @@
 #include "2600.h"
 
-uint8 enablv;
+uint8 enabld, grp0d, grp1d;
 
 uint32 coltab[8][16] = {
 	{0x000000, 0x444400, 0x702800, 0x841800, 0x880000, 0x78005c, 0x480078, 0xdddddd, 0x000088, 0x00187c, 0x002c5c, 0x003c2c, 0x003c00, 0x143800, 0x2c3000, 0x442800},
@@ -18,7 +18,6 @@ void pixel(int x, int y, uint32 col)
 	int oy, ox, i;
 
 	x -= 68;
-	y -= 40;
 	x *= SFW;
 	y *= SFH;
 	for(oy = 0; oy < SFH; oy++)
@@ -42,7 +41,7 @@ void playfield(void)
 
 	x = (px-68)/4;
 	if(x >= 20) {
-		if(!(tiareg[CTRLPF] & 1))
+		if(tiareg[CTRLPF] & 1)
 			x = 39-x;
 		else
 			return;
@@ -80,14 +79,39 @@ void ball(void)
 
 void player(uint8 t)
 {
+	int x;
+	uint8 v;
+
+	x = px - tiareg[RESP0+t];
+	if(x < 0)
+		return;
+	switch(tiareg[NUSIZ0+t] & 7) {
+	case 0:	if(x >= 8) return; break;
+	case 1:	if(x >= 8 && (x < 16 || x >= 24)) return; break;
+	case 2: if(x >= 8 && (x < 32 || x >= 40)) return; break;
+	case 3: if(x >= 40 || (x & 0xf) >= 8) return; break;
+	case 4: if(x >= 8 && (x < 64 || x >= 72)) return; break;
+	case 5: if(x >= 16) return; break;
+	case 6: if(x >= 72 || ((x & 0x1f) >= 8)) return; break;
+	case 7: if(x >= 32) return; break;
+	}
+	v = 0x80 >> (x % 8);
+	if(tiareg[REFP0+t] & 8)
+		v = 1 << (x % 8);
+	if(tiareg[GRP0+t] & v)
+		pixel(px, py, t ? colup1 : colup0);
 }
 
 void tiawrite(uint16 a, uint8 v)
 {
 	switch(a) {
 	case VSYNC:
-		if(v)
+		if(v & 2)
 			draw();
+		return;
+	case VBLANK:
+		if(!(v & 2))
+			py = 0;
 		return;
 	case WSYNC:
 		tia(228-px);
@@ -111,11 +135,33 @@ void tiawrite(uint16 a, uint8 v)
 	case RESBL:
 		tiareg[a] = px;
 		return;
-	case ENABL:
-		if(tiareg[VDELBL] & 1) {
-			enablv = v;
+	case GRP0:
+		if(tiareg[VDELP0] & 1) {
+			grp0d = v;
 			return;
 		}
+		break;
+	case GRP1:
+		if(tiareg[VDELP1] & 1) {
+			grp1d = v;
+			return;
+		}
+		break;
+	case ENABL:
+		if(tiareg[VDELBL] & 1) {
+			enabld = v;
+			return;
+		}
+		break;
+	case HMOVE:
+		tiareg[RESP0] = (((tiareg[RESP0] - ((char)tiareg[HMP0] >> 4))-68) % 160) + 68;
+		tiareg[RESP1] = (((tiareg[RESP1] - ((char)tiareg[HMP1] >> 4))-68) % 160) + 68;
+		tiareg[RESM0] = (((tiareg[RESM0] - ((char)tiareg[HMM0] >> 4))-68) % 160) + 68;
+		tiareg[RESM1] = (((tiareg[RESM1] - ((char)tiareg[HMM1] >> 4))-68) % 160) + 68;
+		tiareg[RESBL] = (((tiareg[RESBL] - ((char)tiareg[HMBL] >> 4))-68) % 160) + 68;
+		break;
+	case HMCLR:
+		tiareg[HMP0] = tiareg[HMP1] = tiareg[HMM0] = tiareg[HMM1] = tiareg[HMBL] = 0;
 		break;
 	}
 	tiareg[a] = v;
@@ -133,23 +179,24 @@ void tia(uint8 n)
 	int i;
 
 	for(i = 0; i < n; i++) {
-		if(py >= 40 && py < 232 && px >= 68 && px < 228) {
+		if(py < 222 && px >= 68 && px < 228) {
 			pixel(px, py, colubk);
 			playfield();
 			missile(0);
 			missile(1);
 			ball();
-			//player(0);
-			//player(1);
+			player(0);
+			player(1);
 		}
-		px++;
-		if(px >= 228) {
+		if(++px >= 228) {
 			px = 0;
 			py++;
 			if(tiareg[VDELBL] & 1)
-				tiareg[ENABL] = enablv;
-			if(py >= 262)
-				py = 0;
+				tiareg[ENABL] = enabld;
+			if(tiareg[VDELP0] & 1)
+				tiareg[GRP0] = grp0d;
+			if(tiareg[VDELP1] & 1)
+				tiareg[GRP1] = grp1d;
 		}
 	}
 }
