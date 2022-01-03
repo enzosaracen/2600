@@ -21,8 +21,8 @@ uint16 absx(int pb)
 {
 	uint16 a, r;
 
-	a = r = fetch16();
-	r = (r + rX) & 0xffff;
+	a = fetch16();
+	r = (a + rX) & 0xffff;
 	if(pb && (a & 0xf00) != (r & 0xf00)) {
 		tia(3);
 		timerstep(1);
@@ -34,8 +34,8 @@ uint16 absy(int pb)
 {
 	uint16 a, r;
 
-	a = r = fetch16();
-	r = (r + rY) & 0xffff;
+	a = fetch16();
+	r = (a + rY) & 0xffff;
 	if(pb && (a & 0xf00) != (r & 0xf00)) {
 		tia(3);
 		timerstep(1);
@@ -346,8 +346,8 @@ void step(void)
 	#define c(n) tia((n)*3); timerstep(n)
 	
 	op = fetch8();
-	//printf("%s: %s\t|", hex(pc-1), op2str(op));
-	//printf(" %s\n", hex(op));
+	printf("%s: %s\t|", hex(pc-1), op2str(op));
+	printf(" %s\n", hex(op));
 	switch(op) {
 /* adc */
 	case 0x69:	c(2); adc(imm());			return;
