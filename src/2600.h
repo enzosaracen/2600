@@ -116,6 +116,9 @@ void	errorf(int, char *, ...);
 /*
  *	cpu.c	
  */
+uint16	absx(int);
+uint16	absy(int);
+uint16	indy(int);
 uint16	indf(uint8);
 uint8	nz(uint8);
 void	push8(uint8);
@@ -133,6 +136,7 @@ void	cmp(uint8, uint8);
 uint8	rol(uint8);
 uint8	ror(uint8);
 void	brk(void);
+void	branch(char);
 void	timerstep(int);
 void	step(void);
 uint8	read(uint16);

@@ -20,7 +20,6 @@ void pixel(int x, int y, uint32 col)
 {
 	int oy, ox, i;
 
-	x -= 68;
 	x *= SFW;
 	y *= SFH;
 	for(oy = 0; oy < SFH; oy++)
@@ -41,14 +40,20 @@ void draw(void)
 void playfield(void)
 {
 	int x;
+	uint32 col;
 
-	x = (px-68)/4;
+	col = colupf;
+	x = px / 4;
 	if(x >= 20) {
+		if(tiareg[CTRLPF] & 2)
+			col = colup1;
 		if(tiareg[CTRLPF] & 1)
 			x = 39-x;
 		else
-			return;
-	}
+			x = x-20;
+	} else
+		if(tiareg[CTRLPF] & 2)
+			col = colup0;
 	if(x < 4) {
 		if(!(tiareg[PF0] & 0x10<<x))
 			return;
@@ -59,7 +64,7 @@ void playfield(void)
 		if(!(tiareg[PF2] & 1<<(x-12)))
 			return;
 	}
-	pixel(px, py, colupf);
+	pixel(px, py, col);
 	ppf = 1;
 }
 
@@ -126,9 +131,9 @@ void tiawrite(uint16 a, uint8 v)
 			py = 0;
 		return;
 	case WSYNC:
-		tcarry += (228-px)%3;
-		timerstep((228-px)/3);
-		tia(228-px);
+		tcarry += (160-px)%3;
+		timerstep((160-px)/3);
+		tia(160-px);
 		return;
 	case COLUP0:
 		colup0 = coltab[(v & 0xe)>>1][(v & 0xf0)>>4];
@@ -147,10 +152,7 @@ void tiawrite(uint16 a, uint8 v)
 	case RESM0:
 	case RESM1:
 	case RESBL:
-		if(px < 68)
-			tiareg[a] = px+68;
-		else
-			tiareg[a] = px;
+		tiareg[a] = px;
 		return;
 	case GRP0:
 		if(tiareg[VDELP0] & 1) {
@@ -173,9 +175,9 @@ void tiawrite(uint16 a, uint8 v)
 	case HMOVE:
 		for(i = 0; i < 5; i++) {
 			t = tiareg[RESP0+i] - ((char)tiareg[HMP0+i] >> 4);
-			if(t < 68)
+			if(t < 0)
 				t += 160;
-			else if(t >= 228)
+			else if(t > 160)
 				t -= 160;
 			tiareg[RESP0+i] = t;
 		}
@@ -212,7 +214,7 @@ void tia(uint8 n)
 	int i;
 
 	for(i = 0; i < n; i++) {
-		if(py < 222 && px >= 68 && px < 228) {
+		if(py < 222 && px < 160) {
 			pixel(px, py, colubk);
 			playfield();
 			missile(0);
