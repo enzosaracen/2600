@@ -158,13 +158,21 @@ void tiawrite(uint16 a, uint8 v)
 	case VBLANK:
 		if(v & 1<<6)
 			latch = 0xff;
+		/* reliance on vblank finnicky, seems to work well but in some
+		 * games (river raid) py just keeps going up (although vblank seems to be
+		 * called) and nothing ends up getting drawn,
+		 * will have to investigate */
 		if(!(v & 2))
 			py = 0;
 		return;
 	case WSYNC:
-		tcarry += (160-px)%3;
-		timerstep((160-px)/3);
-		tia(160-px);
+		if(px >= 160) {
+			t = (228-px)+160;
+		} else
+			t = 160-px;
+		tcarry += t % 3;
+		timerstep(t / 3);
+		tia(t);
 		return;
 	case COLUP0:
 		colup0 = coltab[(v & 0xe)>>1][(v & 0xf0)>>4];
@@ -192,6 +200,7 @@ void tiawrite(uint16 a, uint8 v)
 		}
 		break;
 	case GRP1:
+		printf("(%d,%d)\t%s\n", py, px, hex(tiareg[GRP1]));
 		if(tiareg[VDELP1] & 1) {
 			grp1d = v;
 			return;
