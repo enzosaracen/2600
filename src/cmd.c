@@ -26,7 +26,13 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("2600", "");
 
 	rP |= (BF | 1<<5);
-	for(i = 0; i < 1000000; i++) {
+	portB |= (1<<3 | 1);
+	swcha = 0xff;
+	swchb = 0x3f;
+	portA = 0xff;
+	portB = 0x3f;
+	latch = 0xff;
+	for(;;) {
 		step();
 		//debug();
 		/*for(i = 0; i < 8; i++) {
@@ -36,5 +42,4 @@ int main(int argc, char **argv)
 		}
 		printf("\n\n");*/
 	}
-	SDL_Delay(2000);
 }

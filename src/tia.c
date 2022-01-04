@@ -1,10 +1,5 @@
 #include "2600.h"
 
-uint8	enabld, grp0d, grp1d;
-uint8	pp0, pp1, pm0, pm1, ppf, pbl;
-/* can shorten into one uint16 but lazy */
-uint8	cxm0p, cxm1p, cxp0fb, cxp1fb, cxm0fb, cxm1fb, cxblpf, cxppmm;
-
 uint32 coltab[8][16] = {
 	{0x000000, 0x444400, 0x702800, 0x841800, 0x880000, 0x78005c, 0x480078, 0xdddddd, 0x000088, 0x00187c, 0x002c5c, 0x003c2c, 0x003c00, 0x143800, 0x2c3000, 0x442800},
 	{0x404040, 0x646410, 0x844414, 0x983418, 0x9c2020, 0x8c2074, 0x602090, 0x302098, 0x1c209c, 0x1c3890, 0x1c4c78, 0x1c5c48, 0x205c20, 0x345c1c, 0x4c501c, 0x644818},
@@ -30,11 +25,45 @@ void pixel(int x, int y, uint32 col)
 
 void draw(void)
 {
+	SDL_Event ev;
+
 	if(SDL_LockSurface(scr) < 0)
 		errorf(0, "SDL_LockSurface: %s", SDL_GetError());
 	memcpy((uint8*)scr->pixels, rast, W*H*4);
 	SDL_UnlockSurface(scr);
 	SDL_UpdateRect(scr, 0, 0, 0, 0);
+	while(SDL_PollEvent(&ev))
+		switch(ev.type) {
+		case SDL_QUIT:
+			SDL_Quit();
+			exit(0);
+			break;
+		case SDL_KEYDOWN:
+			switch(ev.key.keysym.sym) {
+			case SDLK_UP:		portA &= ~(1<<4); inpt |= 1<<0; break;
+			case SDLK_DOWN:		portA &= ~(1<<5); inpt |= 1<<1; break;
+			case SDLK_LEFT:		portA &= ~(1<<6); inpt |= 1<<2; break;
+			case SDLK_RIGHT:	portA &= ~(1<<7); inpt |= 1<<3; break;
+			case ' ':		inpt |= 1<<4; break;
+			case SDLK_RETURN:	inpt |= 1<<5; break;
+			case SDLK_TAB:		inpt |= 1<<6; break;
+			case SDLK_F2:		portB &= ~(1); break;
+			case SDLK_F3:		portB &= ~(1<<3); break;
+			}
+			break;
+		case SDL_KEYUP:
+			switch(ev.key.keysym.sym) {
+			case SDLK_UP:		portA |= 1<<4; inpt &= ~(1<<0); latch &= ~(1<<0); break;
+			case SDLK_DOWN:		portA |= 1<<5; inpt &= ~(1<<1); latch &= ~(1<<1); break;
+			case SDLK_LEFT:		portA |= 1<<6; inpt &= ~(1<<2); latch &= ~(1<<2); break;
+			case SDLK_RIGHT:	portA |= 1<<7; inpt &= ~(1<<3); latch &= ~(1<<3); break;
+			case ' ':		inpt &= ~(1<<4); latch &= ~(1<<4); break;
+			case SDLK_RETURN:	inpt &= ~(1<<5); latch &= ~(1<<5); break;
+			case SDLK_TAB:		inpt &= ~(1<<6); latch &= ~(1<<6); break;
+			case SDLK_F3:		portB |= 1<<3; break;
+			}
+			break;
+		}
 }
 
 void playfield(void)
@@ -127,6 +156,8 @@ void tiawrite(uint16 a, uint8 v)
 			draw();
 		return;
 	case VBLANK:
+		if(v & 1<<6)
+			latch = 0xff;
 		if(!(v & 2))
 			py = 0;
 		return;
@@ -192,6 +223,18 @@ void tiawrite(uint16 a, uint8 v)
 	tiareg[a] = v;
 }
 
+uint8 tiaport(uint8 p)
+{
+	uint8 l;
+
+	if((tiareg[VBLANK] & 1<<7) && p <= 3)
+		return 0;
+	l = inpt & (1<<p);
+	if((tiareg[VBLANK] & 1<<6) && p >= 4)
+		l = latch & (1<<p);
+	return l ? 0x80 : 0;
+}
+
 uint8 tiaread(uint16 a)
 {
 	switch(a) {
@@ -203,7 +246,12 @@ uint8 tiaread(uint16 a)
 	case CXM1FB:	return cxm1fb;
 	case CXBLPF:	return cxblpf;
 	case CXPPMM:	return cxppmm;
-	case INPT1:;
+	case INPT0:
+	case INPT1:
+	case INPT2:
+	case INPT3:
+	case INPT4:
+	case INPT5:	return tiaport(a-INPT0);
 	}
 	return 0;
 	errorf(1, "tiaread defaulted");

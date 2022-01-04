@@ -283,10 +283,10 @@ uint8 read(uint16 a)
 		return ram[a & 0x7f];
 	else if(a & 0x200 && a <= 0x2ff) {
 		switch(a) {
-			case INTIM:	return time;
+		case INTIM:	return time;
 		case INSTAT:	t = timerflags; timerflags &= 0xdf; return t;
-		case SWCHA:	return (swcha & swacnt) | (portA & (swacnt^0xff));
-		case SWCHB:	return (swchb & swbcnt) | (portB & (swbcnt^0xff));
+		case SWCHA:	printf("%s\n", hex(portA & (swacnt^0xff))); return /*(swcha & swacnt) |*/ (portA & (swacnt^0xff));
+		case SWCHB:	return /*(swchb & swbcnt) |*/ (portB & (swbcnt^0xff));
 		default:	errorf(1, "riot read defaulted");
 		}
 	} else if(a & 0x1000)
@@ -346,8 +346,8 @@ void step(void)
 	#define c(n) tia((n)*3); timerstep(n)
 	
 	op = fetch8();
-	printf("%s: %s\t|", hex(pc-1), op2str(op));
-	printf(" %s\n", hex(op));
+	//printf("%s: %s\t|", hex(pc-1), op2str(op));
+	//printf(" %s\n", hex(op));
 	switch(op) {
 /* adc */
 	case 0x69:	c(2); adc(imm());			return;
