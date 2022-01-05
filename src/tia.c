@@ -85,29 +85,34 @@ void playfield(void)
 			col = colup0;
 	if(x < 4) {
 		if(!(tiareg[PF0] & 0x10<<x))
-			return;
+			goto end;
 	} else if(x < 12) {
 		if(!(tiareg[PF1] & 0x80>>(x-4)))
-			return;
+			goto end;
 	} else if(x < 20) {
 		if(!(tiareg[PF2] & 1<<(x-12)))
-			return;
+			goto end;
 	}
 	pixel(px, py, col);
 	ppf = 1;
+	return;
+end:
+	ppf = 0;
 }
 
 void missile(uint8 t)
 {
 	if(tiareg[RESMP0+t] & 2) {
 		tiareg[RESM0+t] = t ? tiareg[PF1] : tiareg[PF0];
-		return;
+		goto end;
 	}
 	if(tiareg[ENAM0+t] && px >= tiareg[RESM0+t])
 		if((px-tiareg[RESM0+t]) <= ((tiareg[NUSIZ0+t] & 0x30) >> 3)) {
 			pixel(px, py, t ? colup1 : colup0);
 			t ? (pm1 = 1) : (pm0 = 1);
 		}
+end:
+	t ? (pm1 = 0) : (pm0 = 0);
 }
 
 void ball(void)
@@ -117,6 +122,7 @@ void ball(void)
 			pixel(px, py, colupf);
 			pbl = 1;
 		}
+	pbl = 0;
 }
 
 void player(uint8 t)
@@ -124,18 +130,19 @@ void player(uint8 t)
 	int x;
 	uint8 v;
 
+
 	x = px - tiareg[RESP0+t];
 	if(x < 0)
-		return;
+		goto end;
 	switch(tiareg[NUSIZ0+t] & 7) {
-	case 0:	if(x >= 8) return; break;
-	case 1:	if(x >= 8 && (x < 16 || x >= 24)) return; break;
-	case 2: if(x >= 8 && (x < 32 || x >= 40)) return; break;
-	case 3: if(x >= 40 || (x & 0xf) >= 8) return; break;
-	case 4: if(x >= 8 && (x < 64 || x >= 72)) return; break;
-	case 5: if(x >= 16) return; break;
-	case 6: if(x >= 72 || ((x & 0x1f) >= 8)) return; break;
-	case 7: if(x >= 32) return; break;
+	case 0:	if(x >= 8) goto end; break;
+	case 1:	if(x >= 8 && (x < 16 || x >= 24)) goto end; break;
+	case 2: if(x >= 8 && (x < 32 || x >= 40)) goto end; break;
+	case 3: if(x >= 40 || (x & 0xf) >= 8) goto end; break;
+	case 4: if(x >= 8 && (x < 64 || x >= 72)) goto end; break;
+	case 5: if(x >= 16) goto end; break;
+	case 6: if(x >= 72 || ((x & 0x1f) >= 8)) goto end; break;
+	case 7: if(x >= 32) goto end; break;
 	}
 	v = 0x80 >> (x % 8);
 	if(tiareg[REFP0+t] & 8)
@@ -144,6 +151,8 @@ void player(uint8 t)
 		pixel(px, py, t ? colup1 : colup0);
 		t ? (pp1 = 1) : (pp0 = 1);
 	}
+end:
+	t ? (pp1 = 0) : (pp0 = 0);
 }
 
 void tiawrite(uint16 a, uint8 v)
@@ -188,10 +197,13 @@ void tiawrite(uint16 a, uint8 v)
 		return;
 	case RESP0:
 	case RESP1:
+
+		tiareg[a] = px >= 160 ? 3 : px+5;
+		return;
 	case RESM0:
 	case RESM1:
 	case RESBL:
-		tiareg[a] = px;
+		tiareg[a] = px >= 160 ? 2 : px+5;
 		return;
 	case GRP0:
 		if(tiareg[VDELP0] & 1) {
@@ -200,7 +212,6 @@ void tiawrite(uint16 a, uint8 v)
 		}
 		break;
 	case GRP1:
-		printf("(%d,%d)\t%s\n", py, px, hex(tiareg[GRP1]));
 		if(tiareg[VDELP1] & 1) {
 			grp1d = v;
 			return;

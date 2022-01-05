@@ -344,10 +344,10 @@ void step(void)
 	uint8 op;
 
 	#define c(n) tia((n)*3); timerstep(n)
-	
+
 	op = fetch8();
-	printf("%s: (%d,%d)\t%s\t|", hex(pc-1), py, px, op2str(op));
-	printf(" %s\n", hex(op));
+	//printf("%s: (%d,%d)\t%s\t|", hex(pc-1), py, px, op2str(op));
+	//printf(" %s\n", hex(op));
 	switch(op) {
 /* adc */
 	case 0x69:	c(2); adc(imm());			return;
