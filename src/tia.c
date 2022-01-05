@@ -110,6 +110,7 @@ void missile(uint8 t)
 		if((px-tiareg[RESM0+t]) <= ((tiareg[NUSIZ0+t] & 0x30) >> 3)) {
 			pixel(px, py, t ? colup1 : colup0);
 			t ? (pm1 = 1) : (pm0 = 1);
+			return;
 		}
 end:
 	t ? (pm1 = 0) : (pm0 = 0);
@@ -121,6 +122,7 @@ void ball(void)
 		if((px-tiareg[RESBL]) <= ((tiareg[CTRLPF] & 0x30) >> 3)) {
 			pixel(px, py, colupf);
 			pbl = 1;
+			return;
 		}
 	pbl = 0;
 }
@@ -150,6 +152,7 @@ void player(uint8 t)
 	if(tiareg[GRP0+t] & v) {
 		pixel(px, py, t ? colup1 : colup0);
 		t ? (pp1 = 1) : (pp0 = 1);
+		return;
 	}
 end:
 	t ? (pp1 = 0) : (pp0 = 0);

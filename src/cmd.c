@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	SDL_WM_SetCaption("2600", "");
 
 	rP |= (BF | 1<<5);
-	portB |= (1<<3 | 1);
+	portB |= (1<<3);
 	swcha = 0xff;
 	swchb = 0x3f;
 	portA = 0xff;
