@@ -166,7 +166,6 @@ EXTERN	int	interval, cyc, time, tcarry;
 extern	uint32	coltab[8][16];
 EXTERN	uint8	enabld, grp0d, grp1d;
 EXTERN	uint8	pp0, pp1, pm0, pm1, ppf, pbl;
-/* can shorten into one uint16 but lazy */
 EXTERN	uint16	coll;
 EXTERN	uint8	inpt, latch;
 
