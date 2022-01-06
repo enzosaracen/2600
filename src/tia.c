@@ -240,7 +240,7 @@ void tiawrite(uint16 a, uint8 v)
 		tiareg[HMP0] = tiareg[HMP1] = tiareg[HMM0] = tiareg[HMM1] = tiareg[HMBL] = 0;
 		break;
 	case CXCLR:
-		cxm0p = cxm1p = cxp0fb = cxp1fb = cxm0fb = cxm1fb = cxblpf = cxppmm = 0;
+		coll = 0;
 		break;
 	}
 	tiareg[a] = v;
@@ -261,14 +261,15 @@ uint8 tiaport(uint8 p)
 uint8 tiaread(uint16 a)
 {
 	switch(a) {
-	case CXM0P:	return cxm0p;
-	case CXM1P:	return cxm1p;
-	case CXP0FB:	return cxp0fb;
-	case CXP1FB:	return cxp1fb;
-	case CXM0FB:	return cxm0fb;
-	case CXM1FB:	return cxm1fb;
-	case CXBLPF:	return cxblpf;
-	case CXPPMM:	return cxppmm;
+	case CXM0P:
+	case CXM1P:
+	case CXP0FB:
+	case CXP1FB:
+	case CXM0FB:
+	case CXM1FB:
+	case CXBLPF:
+	case CXPPMM:	return ((coll >> (a*2)) & 3) << 6;
+	
 	case INPT0:
 	case INPT1:
 	case INPT2:
@@ -293,21 +294,21 @@ void tia(uint8 n)
 			ball();
 			player(0);
 			player(1);
-			cxm0p |= (pm0 & pp0) << 6;
-			cxm0p |= (pm0 & pp1) << 7;
-			cxm1p |= (pm1 & pp1) << 6;
-			cxm1p |= (pm1 & pp0) << 7;
-			cxp0fb |= (pp0 & pbl) << 6;
-			cxp0fb |= (pp0 & ppf) << 7;
-			cxp1fb |= (pp1 & pbl) << 6;
-			cxp1fb |= (pp1 & ppf) << 7;
-			cxm0fb |= (pm0 & pbl) << 6;
-			cxm0fb |= (pm0 & ppf) << 7;
-			cxm1fb |= (pm1 & pbl) << 6;
-			cxm1fb |= (pm1 & ppf) << 7;
-			cxblpf |= (pbl & ppf) << 7;
-			cxppmm |= (pm0 & pm1) << 6;
-			cxppmm |= (pp0 & pp1) << 7;
+			coll |= (pm0 & pp0) << 0;
+			coll |= (pm0 & pp1) << 1;
+			coll |= (pm1 & pp1) << 2;
+			coll |= (pm1 & pp0) << 3;
+			coll |= (pp0 & pbl) << 4;
+			coll |= (pp0 & ppf) << 5;
+			coll |= (pp1 & pbl) << 6;
+			coll |= (pp1 & ppf) << 7;
+			coll |= (pm0 & pbl) << 8;
+			coll |= (pm0 & ppf) << 9;
+			coll |= (pm1 & pbl) << 10;
+			coll |= (pm1 & ppf) << 11;
+			coll |= (pbl & ppf) << 13;
+			coll |= (pm0 & pm1) << 14;
+			coll |= (pp0 & pp1) << 15;
 		}
 		if(++px >= 228) {
 			px = 0;

@@ -117,10 +117,12 @@ void inc(uint16 a)
 
 uint8 lsr(uint8 v)
 {
-	rP &= ~CF;
-	if(v & 0x80)
+	rP &= ~(NF | ZF | CF);
+	if(v & 1)
 		rP |= CF;
-	return nz(v >> 1);
+	if((v >>= 1) == 0)
+		rP |= ZF;
+	return v;
 }
 
 uint8 asl(uint8 v)
@@ -194,13 +196,12 @@ void sbc(uint8 v)
 
 void bit(uint8 v)
 {
-	v &= rA;
 	rP &= ~(NF | VF | ZF);
 	if(v & 0x80)
 		rP |= NF;
 	if(v & 0x40)
 		rP |= VF;
-	if(v == 0)
+	if((v & rA) == 0)
 		rP |= ZF;
 }
 
@@ -337,6 +338,18 @@ void timerstep(int n)
 	}
 }
 
+void pram(void)
+{
+	int i, j;
+
+	for(i = 0; i < 8; i++) {
+		for(j = 0; j < 16; j++)
+			printf("%s ", hex(ram[i*16 + j]));
+		printf("\n");
+	}
+	printf("\n\n");
+}
+
 void step(void)
 {
 	char tc;
@@ -346,8 +359,8 @@ void step(void)
 	#define c(n) tia((n)*3); timerstep(n)
 
 	op = fetch8();
-	//printf("%s: (%d,%d)\t%s\t|", hex(pc-1), py, px, op2str(op));
-	//printf(" %s\n", hex(op));
+	printf("%s: (%d,%d)\t%s\t|", hex(pc-1), py, px, op2str(op));
+	printf(" %s\n", hex(op));
 	switch(op) {
 /* adc */
 	case 0x69:	c(2); adc(imm());			return;

@@ -167,7 +167,7 @@ extern	uint32	coltab[8][16];
 EXTERN	uint8	enabld, grp0d, grp1d;
 EXTERN	uint8	pp0, pp1, pm0, pm1, ppf, pbl;
 /* can shorten into one uint16 but lazy */
-EXTERN	uint8	cxm0p, cxm1p, cxp0fb, cxp1fb, cxm0fb, cxm1fb, cxblpf, cxppmm;
+EXTERN	uint16	coll;
 EXTERN	uint8	inpt, latch;
 
 EXTERN	uint8		rast[W*H*4];
