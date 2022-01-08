@@ -32,14 +32,6 @@ int main(int argc, char **argv)
 	portA = 0xff;
 	portB = 0x3f;
 	latch = 0xff;
-	for(;;) {
+	for(;;)
 		step();
-		//debug();
-		/*for(i = 0; i < 8; i++) {
-			for(int j = 0; j < 16; j++)
-				printf("%s ", hex(ram[i*16 + j]));
-			printf("\n");
-		}
-		printf("\n\n");*/
-	}
 }

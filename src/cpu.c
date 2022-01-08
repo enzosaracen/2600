@@ -135,12 +135,7 @@ uint8 asl(uint8 v)
 
 uint8 bcd(uint8 v)
 {
-	uint8 r;
-
-	r = (v & 0xf) + (v & 0xf0)*10;
-	if(r > 99)
-		errorf(1, "bad bcd");
-	return r;
+	return (v >> 4)*10 + (0xf & v);
 }
 
 void adc(uint8 v)
@@ -286,8 +281,8 @@ uint8 read(uint16 a)
 		switch(a) {
 		case INTIM:	return time;
 		case INSTAT:	t = timerflags; timerflags &= 0xdf; return t;
-		case SWCHA:	return /*(swcha & swacnt) |*/ (portA & (swacnt^0xff));
-		case SWCHB:	return /*(swchb & swbcnt) |*/ (portB & (swbcnt^0xff));
+		case SWCHA:	return (swcha & swacnt) | (portA & (swacnt^0xff));
+		case SWCHB:	return (swchb & swbcnt) | (portB & (swbcnt^0xff));
 		default:	errorf(1, "riot read defaulted");
 		}
 	} else if(a & 0x1000)

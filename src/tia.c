@@ -47,7 +47,7 @@ void draw(void)
 			case ' ':		inpt |= 1<<4; break;
 			case SDLK_RETURN:	inpt |= 1<<5; break;
 			case SDLK_TAB:		inpt |= 1<<6; break;
-			case SDLK_F2:		portB &= ~(1); break;
+			case SDLK_F2:		portB &= ~1; break;
 			case SDLK_F3:		portB &= ~(1<<3); break;
 			}
 			break;
@@ -137,14 +137,14 @@ void player(uint8 t)
 	if(x < 0)
 		goto end;
 	switch(tiareg[NUSIZ0+t] & 7) {
-	case 0:	if(x >= 8) goto end; break;
-	case 1:	if(x >= 8 && (x < 16 || x >= 24)) goto end; break;
-	case 2: if(x >= 8 && (x < 32 || x >= 40)) goto end; break;
-	case 3: if(x >= 40 || (x & 0xf) >= 8) goto end; break;
-	case 4: if(x >= 8 && (x < 64 || x >= 72)) goto end; break;
-	case 5: if(x >= 16) goto end; break;
-	case 6: if(x >= 72 || ((x & 0x1f) >= 8)) goto end; break;
-	case 7: if(x >= 32) goto end; break;
+	case 0:	if(x >= 8)				goto end; break;
+	case 1:	if(x >= 8 && (x < 16 || x >= 24)) 	goto end; break;
+	case 2: if(x >= 8 && (x < 32 || x >= 40)) 	goto end; break;
+	case 3: if(x >= 40 || (x & 0xf) >= 8) 		goto end; break;
+	case 4: if(x >= 8 && (x < 64 || x >= 72)) 	goto end; break;
+	case 5: if(x >= 16) 				goto end; x >>= 1; break;
+	case 6: if(x >= 72 || ((x & 0x1f) >= 8)) 	goto end; break;
+	case 7: if(x >= 32) 				goto end; x >>= 2; break;
 	}
 	v = 0x80 >> (x % 8);
 	if(tiareg[REFP0+t] & 8)
@@ -170,10 +170,6 @@ void tiawrite(uint16 a, uint8 v)
 	case VBLANK:
 		if(v & 1<<6)
 			latch = 0xff;
-		/* reliance on vblank finnicky, seems to work well but in some
-		 * games (river raid) py just keeps going up (although vblank seems to be
-		 * called) and nothing ends up getting drawn,
-		 * will have to investigate */
 		if(!(v & 2))
 			py = 0;
 		return;
@@ -288,12 +284,18 @@ void tia(uint8 n)
 	for(i = 0; i < n; i++) {
 		if(py < 222 && px < 160) {
 			pixel(px, py, colubk);
-			playfield();
-			missile(0);
+			if(!(tiareg[CTRLPF] & (1<<2))) {
+				playfield();
+				ball();
+			}
 			missile(1);
-			ball();
-			player(0);
 			player(1);
+			player(0);
+			missile(0);
+			if(tiareg[CTRLPF] & (1<<2)) {
+				playfield();
+				ball();
+			}
 			coll |= (pm0 & pp0) << 0;
 			coll |= (pm0 & pp1) << 1;
 			coll |= (pm1 & pp1) << 2;

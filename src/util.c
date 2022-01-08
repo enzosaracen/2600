@@ -211,7 +211,6 @@ void errorf(int dbg, char *fmt, ...)
 	fprintf(stderr, "\n");
 	if(dbg)
 		debug();
-	SDL_Delay(2000);
 	SDL_Quit();
 	exit(1);
 }
