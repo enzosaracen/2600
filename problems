@@ -1,5 +1,0 @@
-clkbeta2.bin	- date numbers repeated and skinny but fit normal date nusiz (bad pixel timing, player not updated when should)
-6digit.bin	- last number of count doesn't seem to be updated correctly until midway through (seems like bad x pixel timing but it is perfect, so must be something with player drawing, maybe we have to face queued writes...)	
-test.bin	- not working again, some weird graphics stuff with players
-fix bcd
-graphics should wrap around scan lines
