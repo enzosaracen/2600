@@ -306,7 +306,7 @@ void write(uint16 a, uint8 v)
 		case SWACNT:	swacnt = v; break;
 		case SWCHB:	swchb = v; break;
 		case SWBCNT:	swbcnt = v; break;
-		default:	return;errorf(1, "riot write defaulted");
+		default:	errorf(1, "riot write defaulted");
 		}
 	} else
 		errorf(1, "write defaulted, v: %d\ta: %d", v, a);
@@ -331,18 +331,6 @@ void timerstep(int n)
 			break;
 		}
 	}
-}
-
-void pram(void)
-{
-	int i, j;
-
-	for(i = 0; i < 8; i++) {
-		for(j = 0; j < 16; j++)
-			printf("%s ", hex(ram[i*16 + j]));
-		printf("\n");
-	}
-	printf("\n\n");
 }
 
 void step(void)

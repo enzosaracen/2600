@@ -40,27 +40,27 @@ void draw(void)
 			break;
 		case SDL_KEYDOWN:
 			switch(ev.key.keysym.sym) {
-			case SDLK_UP:		portA &= ~(1<<4); inpt |= 1<<0; break;
-			case SDLK_DOWN:		portA &= ~(1<<5); inpt |= 1<<1; break;
-			case SDLK_LEFT:		portA &= ~(1<<6); inpt |= 1<<2; break;
-			case SDLK_RIGHT:	portA &= ~(1<<7); inpt |= 1<<3; break;
-			case ' ':		inpt |= 1<<4; break;
-			case SDLK_RETURN:	inpt |= 1<<5; break;
-			case SDLK_TAB:		inpt |= 1<<6; break;
-			case SDLK_F2:		portB &= ~1; break;
-			case SDLK_F3:		portB &= ~(1<<3); break;
+			case SDLK_UP:		portA &= ~(1<<4); inpt |= 1<<0;				break;
+			case SDLK_DOWN:		portA &= ~(1<<5); inpt |= 1<<1; 			break;
+			case SDLK_LEFT:		portA &= ~(1<<6); inpt |= 1<<2; 			break;
+			case SDLK_RIGHT:	portA &= ~(1<<7); inpt |= 1<<3; 			break;
+			case ' ':		inpt |= 1<<4; 						break;
+			case SDLK_RETURN:	inpt |= 1<<5; 						break;
+			case SDLK_TAB:		inpt |= 1<<6;	 					break;
+			case SDLK_F2:		portB &= ~1; 						break;
+			case SDLK_F3:		portB &= ~(1<<3); 					break;
 			}
 			break;
 		case SDL_KEYUP:
 			switch(ev.key.keysym.sym) {
-			case SDLK_UP:		portA |= 1<<4; inpt &= ~(1<<0); latch &= ~(1<<0); break;
-			case SDLK_DOWN:		portA |= 1<<5; inpt &= ~(1<<1); latch &= ~(1<<1); break;
-			case SDLK_LEFT:		portA |= 1<<6; inpt &= ~(1<<2); latch &= ~(1<<2); break;
-			case SDLK_RIGHT:	portA |= 1<<7; inpt &= ~(1<<3); latch &= ~(1<<3); break;
-			case ' ':		inpt &= ~(1<<4); latch &= ~(1<<4); break;
-			case SDLK_RETURN:	inpt &= ~(1<<5); latch &= ~(1<<5); break;
-			case SDLK_TAB:		inpt &= ~(1<<6); latch &= ~(1<<6); break;
-			case SDLK_F3:		portB |= 1<<3; break;
+			case SDLK_UP:		portA |= 1<<4; inpt &= ~(1<<0); latch &= ~(1<<0); 	break;
+			case SDLK_DOWN:		portA |= 1<<5; inpt &= ~(1<<1); latch &= ~(1<<1); 	break;
+			case SDLK_LEFT:		portA |= 1<<6; inpt &= ~(1<<2); latch &= ~(1<<2); 	break;
+			case SDLK_RIGHT:	portA |= 1<<7; inpt &= ~(1<<3); latch &= ~(1<<3); 	break;
+			case ' ':		inpt &= ~(1<<4); latch &= ~(1<<4); 			break;
+			case SDLK_RETURN:	inpt &= ~(1<<5); latch &= ~(1<<5); 			break;
+			case SDLK_TAB:		inpt &= ~(1<<6); latch &= ~(1<<6); 			break;
+			case SDLK_F3:		portB |= 1<<3; 						break;
 			}
 			break;
 		}
