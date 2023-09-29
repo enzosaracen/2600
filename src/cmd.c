@@ -7,14 +7,19 @@ int main(int argc, char **argv)
 	FILE *f;
 
 	if(argc != 2)
-		errorf(0, "need one rom file as argument");
+		errorf(0, "usage: %s rom", argv[0]);
 	f = fopen(argv[1], "r");
 	if(!f)
 		errorf(0, "cannot open file: %s", argv[1]);
 	for(i = 0; i < 4096; i++) {
 		v = fgetc(f);
-		if(v == EOF)
+		if(v == EOF) {
+			if(i != 2048)
+				errorf(0, "bad rom");
+			for(i = 2048; i < 4096; i++)
+				rom[i] = rom[i-2048];
 			break;
+		}
 		rom[i] = v;
 	}
 	pc = read(0xfffc) | read(0xfffd) << 8;

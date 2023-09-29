@@ -47,8 +47,9 @@ void draw(void)
 			case ' ':		inpt |= 1<<4; 						break;
 			case SDLK_RETURN:	inpt |= 1<<5; 						break;
 			case SDLK_TAB:		inpt |= 1<<6;	 					break;
-			case SDLK_F2:		portB &= ~1; 						break;
+			case SDLK_F2:		portB &= ~1;						break;
 			case SDLK_F3:		portB &= ~(1<<3); 					break;
+			case SDLK_F4:		portB &= ~(1<<1); 					break;
 			}
 			break;
 		case SDL_KEYUP:
@@ -104,7 +105,7 @@ void missile(uint8 t)
 {
 	if(tiareg[RESMP0+t] & 2) {
 		tiareg[RESM0+t] = t ? tiareg[PF1] : tiareg[PF0];
-		goto end;
+		return;
 	}
 	if(tiareg[ENAM0+t] && px >= tiareg[RESM0+t])
 		if((px-tiareg[RESM0+t]) <= ((tiareg[NUSIZ0+t] & 0x30) >> 3)) {
@@ -112,7 +113,6 @@ void missile(uint8 t)
 			t ? (pm1 = 1) : (pm0 = 1);
 			return;
 		}
-end:
 	t ? (pm1 = 0) : (pm0 = 0);
 }
 
@@ -174,13 +174,17 @@ void tiawrite(uint16 a, uint8 v)
 			py = 0;
 		return;
 	case WSYNC:
-		if(px >= 160) {
+		if(px == 160)
+			t = 0;
+		else if(px > 160)
 			t = (228-px)+160;
-		} else
+		else if(px < 160)
 			t = 160-px;
-		tcarry += t % 3;
-		timerstep(t / 3);
-		tia(t);
+		if(t > 0) {
+			tcarry += t % 3;
+			timerstep(t / 3);
+			tia(t);
+		}
 		return;
 	case COLUP0:
 		colup0 = coltab[(v & 0xe)>>1][(v & 0xf0)>>4];

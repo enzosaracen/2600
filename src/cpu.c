@@ -7,6 +7,8 @@
 #define zpy()	((fetch8()+rY) & 0xff)
 #define ind()	(indf(0))
 #define indx()	(indf(rX))
+#define absx(p) (absxy(p, rX))
+#define absy(p) (absxy(p, rY))
 
 uint16 fetch16(void)
 {
@@ -17,29 +19,18 @@ uint16 fetch16(void)
 	return r;
 }
 
-uint16 absx(int pb)
+uint16 absxy(int pb, uint8 i)
 {
 	uint16 a, r;
 
 	a = fetch16();
-	r = (a + rX) & 0xffff;
+	r = (a + i) & 0xffff;
 	if(pb && (a & 0xf00) != (r & 0xf00)) {
 		tia(3);
 		timerstep(1);
 	}
-	return r;
-}
-
-uint16 absy(int pb)
-{
-	uint16 a, r;
-
-	a = fetch16();
-	r = (a + rY) & 0xffff;
-	if(pb && (a & 0xf00) != (r & 0xf00)) {
-		tia(3);
-		timerstep(1);
-	}
+	printf("absxy: %s\t", hex(r));
+	printf("i: %s\n", hex(i));
 	return r;
 }
 
@@ -298,10 +289,10 @@ void write(uint16 a, uint8 v)
 		ram[a & 0x7f] = v;
 	else if(a & 0x200 && a <= 0x2ff) {
 		switch(a) {
-		case TIM1T:	timerflags = 0; time = v; interval = 1; timerstep(interval); break;
-		case TIM8T:	timerflags = 0; time = v; interval = 8; timerstep(interval); break;
-		case TIM64T:	timerflags = 0; time = v; interval = 64; timerstep(interval); break;
-		case T1024T:	timerflags = 0; time = v; interval = 1024; timerstep(interval); break;
+		case TIM1T:	timerflags = 0; time = v; interval = 1; timerstep(interval-1); break;
+		case TIM8T:	timerflags = 0; time = v; interval = 8; timerstep(interval-1); break;
+		case TIM64T:	timerflags = 0; time = v; interval = 64; timerstep(interval-1); break;
+		case T1024T:	timerflags = 0; time = v; interval = 1024; timerstep(interval-1); break;
 		case SWCHA:	swcha = v; break;
 		case SWACNT:	swacnt = v; break;
 		case SWCHB:	swchb = v; break;
@@ -481,7 +472,7 @@ void step(void)
 	case 0xb5:	c(4); nz(rA = read(zpx()));		return;
 	case 0xad:	c(4); nz(rA = read(abs()));		return;
 	case 0xbd:	c(4); nz(rA = read(absx(1)));		return;
-	case 0xb9:	c(4); nz(rA = read(absy(1)));		return;
+	case 0xb9:	c(4); nz(rA = read(absy(1))); printf("rA: %s\n", hex(rA)); return;
 	case 0xa1:	c(6); nz(rA = read(indx()));		return;
 	case 0xb1:	c(5); nz(rA = read(indy(1)));		return;
 /* ldx */
